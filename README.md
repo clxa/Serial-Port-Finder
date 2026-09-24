@@ -1,18 +1,13 @@
 # 串口设备搜索器
 
+**简体中文** | [English](README.en.md)
+
 **面向 Windows 工控现场的串口设备定位工具**：按你定义的「设备模板 + 串口参数组合」逐个探测 COM 口，
 告诉你**这台设备接在哪个串口上**。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2B-0078D4.svg)](#运行要求)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.8-512BD4.svg)](#运行要求)
-
-> **English**: A Windows desktop tool for locating which COM port a serial device is attached to.
-> Define device templates (query command + expected response + serial parameter combinations) and the
-> tool probes each COM port sequentially to identify the device. It only sends the query commands you
-> configure and closes the port after each probe — it is **not** a serial terminal.
-> **Note: the user interface and documentation are in Simplified Chinese.**
-> See [LICENSE](LICENSE) (MIT).
 
 ---
 
