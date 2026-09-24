@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+  <metadata minClientVersion="2.8">
+    <id>Roslynator.Analyzers</id>
+    <version>4.16.1</version>
+    <authors>Josef Pihrt</authors>
+    <owners>Josef Pihrt</owners>
+    <developmentDependency>true</developmentDependency>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">Apache-2.0</license>
+    <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+    <icon>icon.png</icon>
+    <readme>docs\README.md</readme>
+    <projectUrl>https://github.com/dotnet/roslynator</projectUrl>
+    <description>A collection of 200+ analyzers for C#, powered by Roslyn.</description>
+    <summary>A collection of 200+ analyzers for C#, powered by Roslyn.</summary>
+    <copyright>Copyright (c) 2016-2023 Josef Pihrt</copyright>
+    <tags>Roslyn Analyzer Refactoring Productivity CodeAnalysis C# CSharp</tags>
+    <repository type="git" url="https://github.com/dotnet/roslynator.git" />
+  </metadata>
+</package>

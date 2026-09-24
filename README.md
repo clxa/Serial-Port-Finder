@@ -1,0 +1,293 @@
+# 串口设备搜索器
+
+**面向 Windows 工控现场的串口设备定位工具**：按你定义的「设备模板 + 串口参数组合」逐个探测 COM 口，
+告诉你**这台设备接在哪个串口上**。
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2B-0078D4.svg)](#运行要求)
+[![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.8-512BD4.svg)](#运行要求)
+
+> **English**: A Windows desktop tool for locating which COM port a serial device is attached to.
+> Define device templates (query command + expected response + serial parameter combinations) and the
+> tool probes each COM port sequentially to identify the device. It only sends the query commands you
+> configure and closes the port after each probe — it is **not** a serial terminal.
+> **Note: the user interface and documentation are in Simplified Chinese.**
+> See [LICENSE](LICENSE) (MIT).
+
+---
+
+## 这个工具解决什么问题
+
+工控现场经常遇到这种情况：**一台设备通过 USB 转串口线接到电脑上，设备管理器里出现好几个 COM 口，
+但不知道设备到底在哪个口上。** 靠人工一个个试既慢又容易出错，尤其是设备要求特定波特率、
+需要发送特定查询命令才会响应的时候。
+
+这个工具让你把「怎么认出这台设备」描述成一份**模板**（发什么命令、期待什么响应、
+要试哪些串口参数），然后自动把本机所有 COM 口挨个试一遍，直接告诉你答案。
+
+## 界面
+
+![界面总览](assets/界面总览.png)
+
+搜索完成后，匹配到的设备会列在「匹配结果」里，「搜索到的设备」汇总每台设备与它所在的串口：
+
+![搜索结果示例](assets/搜索结果示例.png)
+
+---
+
+## 它能做什么
+
+- 顺序探测本机所有 COM 口：**发一条查询命令 → 看响应是否匹配**，从而识别设备
+- 每个模板可配多组串口参数（波特率 / 数据位 / 校验位 / 停止位），逐个组合自动试
+- 识别协议支持 **文本 / 十六进制** 两种格式，匹配方式支持 **包含 / 完全相等**
+- 模板可存成配置文件，拷到同型号设备的其他电脑复用
+- 支持多个模板同时启用，**任一模板命中即停止该端口的后续探测**
+
+## 它不做什么
+
+- ❌ **不做持续通信** —— 每次探测后立即关闭串口，不是串口调试助手
+- ❌ **不做写入与控制** —— 只发送你配置的识别命令，不修改设备状态
+- ❌ **不自动识别协议** —— 需要你先知道设备的查询命令
+
+---
+
+## 主要特性
+
+| 特性 | 说明 |
+|---|---|
+| 免安装 | 解压即用，不写注册表，删文件夹即卸载 |
+| 顺序扫描 | 端口按 COM 号自然排序（COM10 在 COM2 之后） |
+| 参数组合集 | 内置 26 组常用组合，逐行勾选；行序即扫描顺序，自动按「已勾选 → 常用 → 不常用」排序 |
+| 实时反馈 | 匹配结果表 / 识别到的设备汇总 / 扫描日志 / 状态栏摘要，四路同步 |
+| 可中断 | 「停止搜索」在当前串口安全关闭后结束，并明确标注"部分结果"，不误报"搜索完成" |
+| 校验闭环 | 字段校验 + 模板重名校验；不通过则禁用「开始搜索」并指出原因 |
+| 配置持久化 | 模板保存到 `devices.json`（原子写入），旧配置向后兼容 |
+| 离线可编译 | NuGet 包缓存随仓库提供，无需联网即可还原与生成 |
+
+---
+
+## 运行要求
+
+| 用途 | 要求 |
+|---|---|
+| **运行程序** | Windows 10 或更高版本（.NET Framework 4.8 为系统自带） |
+| **编译源码** | Visual Studio 2019 / 2022（含「.NET 桌面开发」工作负载）+ .NET Framework 4.8 目标包 |
+
+---
+
+## 获取与运行
+
+程序是**自包含**的：除 Windows 自带的 .NET Framework 4.8 外不需要任何环境，也不用安装运行时。
+
+### 方式一：解压即用（最简单，推荐）
+
+到 **[Releases](https://github.com/clxa/Serial-Port-Finder/releases)** 页面下载
+**`SerialPortFinder-v*-portable.zip`**，解压到任意目录，
+双击其中的 `SerialPortDeviceFinder.WinForms.exe` 即可。删除文件夹即卸载。
+
+> 建议解压到**不含中文与空格的路径**（如 `D:\SerialPortFinder\`），更稳妥。
+> 使用说明（界面讲解、字段怎么填、常见问题）随压缩包一起提供。
+
+### 方式二：安装包（有"安装/卸载"的正式感）
+
+到 **[Releases](https://github.com/clxa/Serial-Port-Finder/releases)** 页面下载
+**`SerialPortFinder-Setup-v*.exe`**，双击安装：
+
+- **不需要管理员权限**（默认装到当前用户的程序目录）
+- 自动创建开始菜单与桌面快捷方式，并在「应用和功能」里带卸载入口
+- 卸载不会删除 `devices.json`，**重装/升级不会弄丢已配好的设备模板**
+
+> 程序未做数字签名，首次运行 Windows SmartScreen 可能提示「已保护你的电脑」，
+> 选择「更多信息」→「仍要运行」即可。
+
+### 方式三：从源码编译
+
+```bash
+git clone https://github.com/clxa/Serial-Port-Finder.git
+cd Serial-Port-Finder
+dotnet build SerialPortDeviceFinder.sln -c Debug
+dotnet run --project src/SerialPortDeviceFinder.WinForms
+```
+
+> **离线编译说明**：本仓库已把 NuGet 包缓存放在 `packages/` 目录，
+> 并配了 `NuGet.config` 指向它，因此 **restore 不需要联网**。
+> 但**首次编译仍需要 .NET Framework 4.8 的引用程序集**（Visual Studio 的「.NET 桌面开发」工作负载，
+> 或单独安装 .NET Framework 4.8 Developer Pack）。若机器上完全没有，
+> 只装 .NET SDK 的裸环境首次 `dotnet build` 会尝试联网获取引用程序集。
+
+---
+
+## 使用流程
+
+最短路径：
+
+```
+新增模板 → 填识别协议 → 勾选串口参数 → 确认校验通过 → 开始搜索 → 保存配置
+```
+
+以「发 `AT` 期待回应 `OK`」的文本设备为例，模板这样填：
+
+| 字段 | 填写 |
+|---|---|
+| 设备名称 | `扫码枪`（不能与其他模板重名） |
+| 启用此模板 | ☑ |
+| 命令格式 | 文本 |
+| 命令内容 | `AT` |
+| 文本结束符 | 按设备手册选（多数是 `CrLf`） |
+| 响应格式 | 文本 |
+| 预期响应 | `OK` |
+| 匹配方式 | 包含（要求更严格可改「完全相等」） |
+| 文本编码 | `Ascii` |
+| 超时时间 | `800` 毫秒（响应慢的设备可加大，范围 100–10000） |
+
+> 十六进制设备把「命令格式 / 响应格式」改为 `Hex`，内容写空格分隔的字节，例如 `41 54`（即 `AT`）。
+
+完整的界面讲解与常见问题，见随发布包提供的《用户使用说明》。
+
+---
+
+## 配置说明（devices.json）
+
+- 点「保存配置」后，模板写入 **exe 同目录**的 `devices.json`。
+- 程序**启动时自动加载**同目录的 `devices.json`；文件不存在则视为空配置，不报错。
+- 换电脑：把发布目录拷过去，再把 `devices.json` 放到同一目录即可。
+- 该文件是纯 JSON，可直接备份或手工编辑。结构如下（与程序实际输出一致）：
+
+```jsonc
+[
+  {
+    "Name": "扫码枪",                  // 设备名称（同批模板内不可重复）
+    "IsEnabled": true,                // 是否参与扫描
+    "CommandFormat": 0,               // 命令格式：0=文本，1=十六进制
+    "CommandContent": "AT",           // 十六进制格式时写 "41 54"
+    "TextTerminator": 3,              // 文本结束符：0=无，1=CR，2=LF，3=CRLF（仅文本命令有效）
+    "ResponseFormat": 0,              // 响应格式：0=文本，1=十六进制
+    "ExpectedResponse": "OK",
+    "MatchMode": 0,                   // 匹配方式：0=包含，1=完全相等
+    "TextEncoding": 0,                // 文本编码：0=ASCII，1=UTF-8，2=GBK
+    "TimeoutMilliseconds": 800,       // 100 ~ 10000
+    "LastScanPortName": "COM3",       // 只读展示：上次匹配到的串口，由程序回写
+    "PortSettings": [
+      { "BaudRate": 9600, "DataBits": 8, "Parity": 0,
+        "StopBits": 1, "Handshake": 0, "Enabled": true }
+    ]
+  }
+]
+```
+
+> ⚠️ **枚举在文件里以数字存储**，不是字符串。上表已标注对应关系，对照表：
+
+| 字段 | 取值 |
+|---|---|
+| `CommandFormat` / `ResponseFormat` | `0`=文本、`1`=十六进制 |
+| `TextTerminator` | `0`=无、`1`=CR、`2`=LF、`3`=CRLF |
+| `MatchMode` | `0`=包含、`1`=完全相等 |
+| `TextEncoding` | `0`=ASCII、`1`=UTF-8、`2`=GBK |
+| `Parity`（校验位） | `0`=None、`1`=Odd、`2`=Even、`3`=Mark、`4`=Space |
+| `StopBits`（停止位） | `1`=1 位、`2`=2 位、`3`=1.5 位 |
+| `Handshake`（握手） | 固定 `0`（None）—— 程序不允许其他取值 |
+
+> 建议**优先用界面编辑并保存**，比手改 JSON 更不容易出错。
+> 旧版本配置若缺少 `PortSettings[].Enabled` 字段，读取时默认按「启用」处理，不会失效。
+
+---
+
+## 项目结构
+
+```
+SerialPortDeviceFinder.sln
+├─ src/
+│  ├─ SerialPortDeviceFinder.Core/       纯逻辑：协议编解码、响应匹配、扫描调度、校验、配置读写
+│  └─ SerialPortDeviceFinder.WinForms/   WinForms 界面（主窗体 + 模板编辑器）
+├─ tests/SerialPortDeviceFinder.Core.Tests/   NUnit 测试（含 STA 的界面测试）
+├─ build/                                打包脚本（生成发布 zip / 安装包）
+├─ assets/                               README 用的界面截图
+└─ packages/                             NuGet 包缓存（随仓库提供，支持离线编译）
+```
+
+**扫描链路**：端口（外层）→ 模板（中层）→ 参数组合（内层），每个组合开串口一次；
+命中即停止该端口；异常（端口被占用 / 通信失败）记为结果并继续下一个。
+
+---
+
+## 使用安全
+
+> ⚠️ **模板中的识别命令必须是确认无副作用的查询或状态读取命令。**
+>
+> 本工具会把命令**真实发送到每一个候选串口**。请勿配置会启动设备、修改参数、清除数据、
+> 执行复位或改变生产状态的命令。建议先用单一串口、单一参数组合小范围验证后再批量使用。
+
+详见 [SECURITY.md](SECURITY.md)。
+
+---
+
+## 常见问题
+
+**搜索一个都没匹配上？** 依次检查：设备是否上电、线是否插好；需要的那组串口参数**勾选了吗**
+（未勾选的行是灰的，不会被扫描）；命令内容有没有多余空格；设备是否要求**结束符**（试 `CrLf` 或 `Cr`）；
+超时是否够长；**预期响应是否与设备实际返回不符** —— 看「扫描日志」里的「响应 XX XX」，
+那就是设备真实返回的内容，照着它改预期响应最准。
+
+**「开始搜索」是灰的？** 校验没通过。看编辑区提示或「所有设备模板校验结果」，会写明原因
+（最常见：命令或预期响应为空、没有勾选任何串口参数、超时超出 100–10000、模板重名）。
+
+**日志显示 `PortUnavailable`？** 串口被占用。关掉其他串口工具（或本工具的另一个实例）后重试。
+
+**搜到了但设备名不对（张冠李戴）？** 识别条件太宽松。把「预期响应」换成该设备**独有**的字符串，
+或把「匹配方式」改为**完全相等**。
+
+**中文乱码？** 调整「文本编码」：`Gbk`（多数国产设备）、`Utf8` 或 `Ascii`。
+
+**搜索很慢？** 耗时 ≈ `端口数 × 模板数 × 勾选参数组数 × 超时` 的最坏累加。
+精简用不到的模板与参数组合，或调小超时。
+
+**换电脑后模板没了？** 把发布目录一起拷过去时，记得把 `devices.json` 也放到 exe 同目录。
+
+---
+
+## 已知限制
+
+- **串行探测、不并行**：耗时随「端口数 × 模板数 × 参数组合数」线性增长，端口多时请精简参数组合
+- **不自动识别协议**：需要你先知道设备的查询命令
+
+---
+
+## 反馈与贡献
+
+- **遇到问题**：欢迎提 [Issue](https://github.com/clxa/Serial-Port-Finder/issues)。
+  请附上「扫描日志」里的原文（含设备真实返回的响应），能大幅加快定位。
+- **想改代码**：欢迎提 Pull Request。
+
+---
+
+## 关于作者
+
+- GitHub：[@clxa](https://github.com/clxa)
+
+---
+
+## 许可证
+
+本项目基于 [MIT 许可证](LICENSE) 开源。
+
+**通俗地说，MIT 允许你：**
+
+- ✅ **商用** —— 公司内部使用、集成进商业产品、随产品一起分发，均**无需付费、无需申请**
+- ✅ **修改** —— 改代码、改界面、增删功能
+- ✅ **再分发** —— 打包发给别人，甚至对外销售
+- ✅ **闭源集成** —— 并进你自己的项目，不必公开你的代码
+
+**唯一的要求（MIT 原文即如此）：再分发代码时保留出处。**
+把 `LICENSE` 文件（内含版权声明与许可证全文）原样带着走即可，不需要在界面或文档里额外标注。
+
+> 说明：MIT 的署名要求针对**分发源代码**的场景；若你只是使用编译好的 exe 作为工具，
+> 不强制标注出处。软件按「现状」提供，作者不对使用后果承担责任。
+
+### 第三方组件
+
+本项目的 MIT 许可**仅覆盖本仓库自身的源代码**，仓库内第三方内容遵循其原始许可证：
+
+| 内容 | 许可证 |
+|---|---|
+| `packages/` 内的 NuGet 包（Newtonsoft.Json、NUnit、Roslynator 等） | 各自的开源许可证 |
+| `build/ChineseSimplified.isl`（Inno Setup 社区中文翻译，作者 Zhenghan Yang） | MIT |
